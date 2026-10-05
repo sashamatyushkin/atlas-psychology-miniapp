@@ -7,6 +7,8 @@ import {
   claimDaily,
   claimLeadMagnet,
   completeTask,
+  coursePrice,
+  enrollCourse,
   createInitialState,
   currentEnergy,
   dailyStatus,
@@ -76,6 +78,26 @@ describe('energy & taps', () => {
     expect(s.energy).toBe(ECONOMY.baseEnergyCap);
     expectCode(() => refillEnergy(s, T0), 'NO_REFILLS');
     expect(() => refillEnergy(s, T0 + DAY)).not.toThrow();
+  });
+});
+
+describe('flash (×2)', () => {
+  it('не даёт усиленных тапов без 100 касаний подряд и ограничивает их бюджетом', () => {
+    const s = createInitialState(T0);
+    expect(applyTaps(s, 50, T0 + 10_000, 50).boostedAccepted).toBe(0);
+    const after100 = applyTaps(s, 100, T0 + 10_000).state;
+    const r = applyTaps(after100, 90, T0 + 20_000, 90);
+    expect(r.boostedAccepted).toBe(90);
+    expect(r.state.balance).toBe(100 + 180);
+    // 190 касаний: бюджет одной вспышки уже израсходован
+    expect(applyTaps(r.state, 5, T0 + 30_000, 5).boostedAccepted).toBe(0);
+    expectCode(() => applyTaps(s, 5, T0, 6), 'VALIDATION');
+  });
+
+  it('фиксирует время достижения уровня', () => {
+    const s = { ...createInitialState(T0), totalEarned: LEVELS[1]!.min - 1 };
+    const r = applyTaps(s, 1, T0 + 5000);
+    expect(r.state.levelsAt['1']).toBe(T0 + 5000);
   });
 });
 
@@ -150,6 +172,20 @@ describe('shop', () => {
     expectCode(() => purchase(rich(gated.price, 0), gated.id, T0, rand), 'LEVEL_REQUIRED');
     expectCode(() => purchase(rich(0, 10_000_000), gated.id, T0, rand), 'INSUFFICIENT_FUNDS');
     expectCode(() => purchase(rich(10), 'nope', T0, rand), 'NOT_FOUND');
+  });
+});
+
+describe('enrollment (test payment)', () => {
+  it('применяет промокод из Лавки и не даёт записаться дважды', () => {
+    const promo = PRODUCTS.find((p) => p.id === 'promo-anxiety-15')!;
+    const withPromo = purchase(rich(promo.price, 10_000), promo.id, T0, rand).state;
+    const price = coursePrice(withPromo, 'anxiety');
+    expect(price.discountPct).toBe(15);
+    expect(price.total).toBe(Math.round(24_900 * 0.85));
+    const r = enrollCourse(withPromo, 'anxiety', 'sbp', T0, rand);
+    expect(r.enrollment.receipt).toMatch(/^ATL-/);
+    expectCode(() => enrollCourse(r.state, 'anxiety', 'card', T0, rand), 'ALREADY_OWNED');
+    expectCode(() => enrollCourse(r.state, 'relations', 'cash' as never, T0, rand), 'VALIDATION');
   });
 });
 

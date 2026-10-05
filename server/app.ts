@@ -7,7 +7,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { findCourse, findProduct } from '../src/domain/catalog';
 import * as engine from '../src/domain/engine';
 import { GOALS, PROFILES } from '../src/domain/quiz';
-import { DomainError, type GameState, type TaskId, type UpgradeKind } from '../src/domain/types';
+import { DomainError, type GameState, type PaymentMethod, type TaskId, type UpgradeKind } from '../src/domain/types';
 import { esc, isChannelMember, notifyAdmin, notifyUser, sendGuide, userLink } from './bot';
 import { env } from './config';
 import { newRecord, type Store, type UserRecord } from './store';
@@ -130,7 +130,8 @@ export function createRoutes(): Record<string, Handler> {
 
     '/api/taps': async ({ init, body, store }) => {
       const count = Number(body.count);
-      return mutate(store, init.user.id, (s, now) => engine.applyTaps(s, count, now));
+      const boosted = Number(body.boosted ?? 0);
+      return mutate(store, init.user.id, (s, now) => engine.applyTaps(s, count, now, boosted));
     },
 
     '/api/daily': async ({ init, store }) => mutate(store, init.user.id, (s, now) => engine.claimDaily(s, now)),
@@ -203,7 +204,21 @@ export function createRoutes(): Record<string, Handler> {
       return res;
     },
 
-    '/api/practice': async ({ init, store }) => mutate(store, init.user.id, (s) => ({ state: engine.completePractice(s) })),
+    '/api/practice': async ({ init, body, store }) =>
+      mutate(store, init.user.id, (s, now) => ({ state: engine.completePractice(s, str(body.practiceId), now) })),
+
+    // Тестовый режим оплаты: деньги не списываются. Для боевой оплаты здесь
+    // создаётся платёж (Telegram Payments / ЮKassa), а запись — по вебхуку об оплате.
+    '/api/enroll': async ({ init, body, store }) => {
+      const courseId = str(body.courseId);
+      const method = str(body.method) as PaymentMethod;
+      const res = await mutate(store, init.user.id, (s, now) => engine.enrollCourse(s, courseId, method, now, rand));
+      const course = findCourse(courseId)!;
+      void notifyAdmin(
+        `💳 <b>Оплата (тестовый режим)</b>\n«${esc(course.title)}» — ${res.enrollment.amountRub.toLocaleString('ru-RU')} ₽${res.enrollment.discountPct ? ` (−${res.enrollment.discountPct}%)` : ''}\nКлиент: ${userLink(init.user)}\nЧек: <code>${res.enrollment.receipt}</code>`,
+      );
+      return res;
+    },
   };
 }
 

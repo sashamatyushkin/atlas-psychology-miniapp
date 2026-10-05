@@ -1,4 +1,4 @@
-import { Pause, Play, RotateCcw, SkipForward } from 'lucide-react';
+import { Pause, Play, RotateCcw, SkipForward, Vibrate, VibrateOff } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Img } from '../components/Img';
 import { useMainButton } from '../components/MainButton';
@@ -10,7 +10,7 @@ import { PRACTICES, practiceDurationSec, type BreathPhase, type Practice } from 
 import { useApp } from '../store/app';
 import { useNav } from '../store/nav';
 import { toast } from '../store/toast';
-import { haptic } from '../telegram/webapp';
+import { haptic, isTelegram, tg } from '../telegram/webapp';
 import './player.css';
 
 const PHASE_LABEL: Record<BreathPhase, string> = {
@@ -72,6 +72,9 @@ function Player({ practice }: { practice: Practice }) {
   const [status, setStatus] = useState<Status>('ready');
   const [elapsed, setElapsed] = useState(0); // секунды, дробные
   const last = useRef<number | null>(null);
+  const hapticsOn = useApp((s) => s.haptics);
+  const [rhythm, setRhythm] = useState(hapticsOn);
+  const lastPulse = useRef(0);
 
   // таймер на requestAnimationFrame — точный и останавливается в фоне
   useEffect(() => {
@@ -102,6 +105,18 @@ function Player({ practice }: { practice: Practice }) {
 
   const phase = useMemo(() => (practice.mode === 'breathing' ? breathingPhase(practice, elapsed) : null), [practice, elapsed]);
   const stepIndex = practice.mode === 'steps' ? Math.min(practice.steps.length - 1, Math.floor(elapsed / practice.stepSec)) : 0;
+
+  // вибрация в ритме дыхания: частые лёгкие импульсы на вдохе, редкие мягкие на выдохе,
+  // тишина на задержке — можно дышать с закрытыми глазами
+  useEffect(() => {
+    if (!rhythm || status !== 'running' || !phase) return;
+    const interval = phase.name === 'inhale' ? 420 : phase.name === 'exhale' ? 720 : 0;
+    if (!interval) return;
+    const t = performance.now();
+    if (t - lastPulse.current < interval) return;
+    lastPulse.current = t;
+    pulse(phase.name === 'inhale' ? 'light' : 'soft');
+  }, [elapsed, rhythm, status, phase]);
 
   // лёгкий отклик на смене фазы дыхания
   const prevPhase = useRef<string | null>(null);
@@ -183,6 +198,9 @@ function Player({ practice }: { practice: Practice }) {
           <div className="bar player-bar">
             <i style={{ width: `${(elapsed / total) * 100}%`, transition: 'none' }} />
           </div>
+          {practice.mode === 'breathing' && rhythm && (
+            <div className="player-hint">Вибро-ритм: частые импульсы — вдох, редкие — выдох</div>
+          )}
           <div className="player-buttons">
             <button
               className="icon-btn glass-dark"
@@ -201,20 +219,35 @@ function Player({ practice }: { practice: Practice }) {
             >
               {status === 'running' ? <Pause size={26} fill="currentColor" /> : <Play size={26} fill="currentColor" />}
             </button>
-            <button
-              className="icon-btn glass-dark"
-              disabled={practice.mode !== 'steps'}
-              style={{ visibility: practice.mode === 'steps' ? 'visible' : 'hidden' }}
-              onClick={() => practice.mode === 'steps' && setElapsed(Math.min(total, (stepIndex + 1) * practice.stepSec))}
-              aria-label="Следующий шаг"
-            >
-              <SkipForward size={18} />
-            </button>
+            {practice.mode === 'steps' ? (
+              <button
+                className="icon-btn glass-dark"
+                onClick={() => setElapsed(Math.min(total, (stepIndex + 1) * practice.stepSec))}
+                aria-label="Следующий шаг"
+              >
+                <SkipForward size={18} />
+              </button>
+            ) : (
+              <button
+                className={`icon-btn glass-dark ${rhythm ? 'on' : ''}`}
+                onClick={() => setRhythm(!rhythm)}
+                aria-label={rhythm ? 'Выключить вибро-ритм' : 'Включить вибро-ритм'}
+                aria-pressed={rhythm}
+              >
+                {rhythm ? <Vibrate size={18} /> : <VibrateOff size={18} />}
+              </button>
+            )}
           </div>
         </div>
       )}
     </div>
   );
+}
+
+/** Импульс вибрации: Telegram Haptic Feedback, в браузере — Vibration API (Android). */
+function pulse(style: 'light' | 'soft') {
+  if (tg && isTelegram) haptic.impact(style);
+  else navigator.vibrate?.(style === 'light' ? 12 : 20);
 }
 
 function breathingPhase(p: Extract<Practice, { mode: 'breathing' }>, elapsed: number) {

@@ -1,11 +1,13 @@
-import { CalendarDays, Check, MonitorPlay, Tag } from 'lucide-react';
+import { CalendarDays, Check, MessageCircle, MonitorPlay, Tag } from 'lucide-react';
 import { useState } from 'react';
 import { errorMessage } from '../api';
 import { Img } from '../components/Img';
 import { wordSize } from '../screens/Home';
 import { useMainButton } from '../components/MainButton';
 import { StateView } from '../components/StateView';
-import { PRODUCTS, findCourse } from '../domain/catalog';
+import { PRODUCTS, findCourse, reviewsFor } from '../domain/catalog';
+import { coursePrice } from '../domain/engine';
+import { ReviewCard } from '../components/ReviewCard';
 import { PROFILES } from '../domain/quiz';
 import { useApp } from '../store/app';
 import { useNav } from '../store/nav';
@@ -34,10 +36,13 @@ export function CourseSheetContent({ id }: { id: string }) {
   const state = useApp((s) => s.state)!;
   const backend = useApp((s) => s.backend);
   const apply = useApp((s) => s.applyCourse);
-  const openSheet = useNav((s) => s.openSheet);
+  const { openSheet, push } = useNav();
   const [loading, setLoading] = useState(false);
   const applied = state.applications.some((a) => a.courseId === id);
-  const promo = PRODUCTS.find((p) => p.kind === 'promo' && p.id.includes(id));
+  const promo = PRODUCTS.find((p) => p.kind === 'promo' && p.courseId === id);
+  const enrolled = state.enrollments.some((e) => e.courseId === id);
+  const price = c ? coursePrice(state, id) : null;
+  const reviews = reviewsFor(id);
   const forYou = state.quiz && c?.forProfiles.includes(state.quiz.profile);
 
   const onApply = async () => {
@@ -56,7 +61,16 @@ export function CourseSheetContent({ id }: { id: string }) {
   };
 
   useMainButton(
-    !c ? null : applied ? { text: 'Заявка отправлена ✓', onClick: () => {}, disabled: true, priority: 10 } : { text: 'Оставить заявку', onClick: onApply, loading, priority: 10, shine: true },
+    !c || !price
+      ? null
+      : enrolled
+        ? { text: 'Вы записаны ✓ · чек', onClick: () => push({ name: 'checkout', courseId: id }), priority: 10 }
+        : {
+            text: `Записаться · ${rub.format(price.total)}`,
+            onClick: () => push({ name: 'checkout', courseId: id }),
+            priority: 10,
+            shine: true,
+          },
   );
 
   if (!c) return <StateView title="Программа не найдена" />;
@@ -81,7 +95,13 @@ export function CourseSheetContent({ id }: { id: string }) {
       <div className="cs-price card">
         <div>
           <div className="ps-price-label">Стоимость</div>
-          <b className="num">{rub.format(c.priceRub)}</b>
+          {price && price.discountPct > 0 ? (
+            <b className="num">
+              {rub.format(price.total)} <s className="subtle">{rub.format(price.base)}</s>
+            </b>
+          ) : (
+            <b className="num">{rub.format(c.priceRub)}</b>
+          )}
         </div>
         <div>
           <div className="ps-price-label">В рассрочку</div>
@@ -119,6 +139,23 @@ export function CourseSheetContent({ id }: { id: string }) {
           </li>
         ))}
       </ul>
+
+      {reviews.length > 0 && (
+        <>
+          <h3 className="cs-h display">Отзывы выпускников</h3>
+          <div className="reviews">
+            {reviews.map((r) => (
+              <ReviewCard key={r.id} review={r} showCourse={false} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {!enrolled && (
+        <button className="btn btn-ghost btn-block cs-ask" disabled={applied || loading} onClick={onApply}>
+          <MessageCircle size={17} /> {applied ? 'Вопрос отправлен куратору' : 'Задать вопрос куратору'}
+        </button>
+      )}
     </>
   );
 }

@@ -64,7 +64,44 @@ export interface GameState {
   purchases: Purchase[];
   applications: { courseId: string; at: number }[];
   practicesDone: number;
+  /** журнал практик для таймлайна (последние 12) */
+  practiceLog: { id: string; at: number }[];
+  /** когда достигнут каждый уровень: индекс → время */
+  levelsAt: Record<string, number>;
+  /** использованные «усиленные» тапы вспышки — для антифрода */
+  flashTapsUsed: number;
+  enrollments: Enrollment[];
   createdAt: number;
+}
+
+export type PaymentMethod = 'card' | 'sbp' | 'installments';
+
+/** Запись на программу (оплата в тестовом режиме) */
+export interface Enrollment {
+  courseId: string;
+  at: number;
+  amountRub: number;
+  discountPct: number;
+  method: PaymentMethod;
+  receipt: string;
+}
+
+export interface Review {
+  id: string;
+  name: string;
+  meta: string;
+  courseId: string;
+  rating: number;
+  text: string;
+  result: string;
+}
+
+export interface World {
+  level: number;
+  name: string;
+  image: string;
+  /** цвет свечения сферы */
+  glow: string;
 }
 
 export type ProductKind = 'practice' | 'access' | 'promo' | 'booking' | 'merch';
@@ -83,6 +120,9 @@ export interface Product {
   includes: string[];
   /** id практики для kind === 'practice' */
   practiceId?: string;
+  /** для промокодов: на какую программу и какая скидка */
+  courseId?: string;
+  discountPct?: number;
   /** ценность в рублях — для якоря «экономия» */
   valueRub?: number;
   badge?: string;

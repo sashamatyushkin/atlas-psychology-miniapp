@@ -47,6 +47,7 @@ class ResilientApi implements Api {
   purchase: Api['purchase'] = (...a) => this.impl.purchase(...a);
   applyCourse: Api['applyCourse'] = (...a) => this.impl.applyCourse(...a);
   completePractice: Api['completePractice'] = (...a) => this.impl.completePractice(...a);
+  enrollCourse: Api['enrollCourse'] = (...a) => this.impl.enrollCourse(...a);
 
   /** Сброс прогресса доступен только в автономном (демо) режиме. */
   get canResetDemo() {

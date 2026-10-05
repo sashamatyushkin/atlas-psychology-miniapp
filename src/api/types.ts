@@ -1,4 +1,4 @@
-import type { GameState, Purchase, TaskId, TgUser, UpgradeKind } from '../domain/types';
+import type { Enrollment, GameState, PaymentMethod, Purchase, TaskId, TgUser, UpgradeKind } from '../domain/types';
 import type { LeadForm } from '../domain/validation';
 
 export interface Session {
@@ -33,7 +33,8 @@ export interface LeadResult extends StateWithReward {
 export interface Api {
   readonly kind: 'mock' | 'http';
   session(startParam?: string): Promise<Session>;
-  syncTaps(count: number): Promise<StateResult>;
+  /** boosted — сколько из count пришлось на «вспышку» (×2) */
+  syncTaps(count: number, boosted: number): Promise<StateResult>;
   claimDaily(): Promise<StateWithReward>;
   refillEnergy(): Promise<StateResult>;
   buyUpgrade(kind: UpgradeKind): Promise<StateResult>;
@@ -43,5 +44,7 @@ export interface Api {
   purchase(productId: string): Promise<StateResult & { purchase: Purchase }>;
   applyCourse(courseId: string): Promise<StateResult>;
   completePractice(practiceId: string): Promise<StateResult>;
+  /** Запись на программу. Оплата в тестовом режиме: деньги не списываются. */
+  enrollCourse(courseId: string, method: PaymentMethod): Promise<StateResult & { enrollment: Enrollment }>;
   resetDemo?(): Promise<StateResult>;
 }

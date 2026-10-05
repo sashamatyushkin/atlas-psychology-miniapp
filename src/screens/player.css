@@ -161,3 +161,16 @@
 .player-main:active {
   transform: scale(0.93);
 }
+
+.player-buttons .icon-btn.on {
+  background: rgba(240, 211, 168, 0.25);
+  border-color: rgba(240, 211, 168, 0.6);
+  color: #f0d3a8;
+}
+
+.player-hint {
+  text-align: center;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 12px;
+}

@@ -5,7 +5,7 @@
 import { getInitData } from '../telegram/webapp';
 import { ApiError, type ApiErrorCode } from './errors';
 import type { Api, LeadResult, Session, StateResult, StateWithReward } from './types';
-import type { Purchase, TaskId, UpgradeKind } from '../domain/types';
+import type { Enrollment, PaymentMethod, Purchase, TaskId, UpgradeKind } from '../domain/types';
 import type { LeadForm } from '../domain/validation';
 
 const TIMEOUT_MS = 8_000;
@@ -51,8 +51,8 @@ export class HttpApi implements Api {
   session(startParam?: string) {
     return this.request<Session>('/api/session', { startParam });
   }
-  syncTaps(count: number) {
-    return this.request<StateResult>('/api/taps', { count });
+  syncTaps(count: number, boosted: number) {
+    return this.request<StateResult>('/api/taps', { count, boosted });
   }
   claimDaily() {
     return this.request<StateWithReward>('/api/daily', {});
@@ -80,5 +80,8 @@ export class HttpApi implements Api {
   }
   completePractice(practiceId: string) {
     return this.request<StateResult>('/api/practice', { practiceId });
+  }
+  enrollCourse(courseId: string, method: PaymentMethod) {
+    return this.request<StateResult & { enrollment: Enrollment }>('/api/enroll', { courseId, method });
   }
 }

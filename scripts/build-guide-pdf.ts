@@ -42,7 +42,7 @@ const html = `<!doctype html>
 @page { size: A4; margin: 0; }
 * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 html, body { margin: 0; }
-body { font-family: 'Manrope', sans-serif; color: #1f1b16; background: #f6f2ec; font-size: 11.5pt; line-height: 1.55; }
+body { font-variant-numeric: lining-nums; font-family: 'Manrope', sans-serif; color: #1f1b16; background: #f6f2ec; font-size: 11.5pt; line-height: 1.55; }
 .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; padding: 22mm 20mm; }
 .page:last-child { page-break-after: auto; }
 .display { font-family: 'Cormorant', serif; font-weight: 500; letter-spacing: -0.01em; line-height: 1.02; }

@@ -2,6 +2,7 @@ import {
   BookOpen,
   ChevronRight,
   FileText,
+  GraduationCap,
   LifeBuoy,
   ListChecks,
   RotateCcw,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Img } from '../components/Img';
 import { PurchaseRow } from '../components/PurchaseRow';
+import { Timeline } from '../components/Timeline';
 import { Amount, formatCompact } from '../components/Spark';
 import { StateView } from '../components/StateView';
 import { config } from '../config';
@@ -31,6 +33,7 @@ export function Profile() {
   const haptics = useApp((s) => s.haptics);
   const setHaptics = useApp((s) => s.setHaptics);
   const resetDemo = useApp((s) => s.resetDemo);
+  const setOnboarded = useApp((s) => s.setOnboarded);
   const { push, openSheet } = useNav();
   const { level, next, progress } = levelFor(state.totalEarned);
   const profile = state.quiz ? PROFILES[state.quiz.profile] : null;
@@ -85,8 +88,8 @@ export function Profile() {
                 <span>
                   До «{next.title}»: <Amount value={next.min - state.totalEarned} size={12} />
                 </span>
-                <button className="link-btn" onClick={() => openSheet({ name: 'tasks' })}>
-                  Как ускорить
+                <button className="link-btn" onClick={() => push({ name: 'map' })}>
+                  Карта пути
                 </button>
               </>
             ) : (
@@ -101,6 +104,16 @@ export function Profile() {
           <Stat value={state.practicesDone} label="практик" />
           <Stat value={state.purchases.length} label="покупок" />
         </div>
+      </section>
+
+      <section className="section rise rise-2">
+        <div className="section-head">
+          <h2>Ваш путь</h2>
+          <button className="link" onClick={() => push({ name: 'map' })}>
+            Карта пути
+          </button>
+        </div>
+        <Timeline state={state} />
       </section>
 
       <section className="section rise rise-2">
@@ -211,6 +224,16 @@ export function Profile() {
               <ChevronRight size={18} className="subtle" />
             </button>
           )}
+          <button className="row" onClick={() => setOnboarded(false)}>
+            <div className="row-icon">
+              <GraduationCap size={18} />
+            </div>
+            <div className="row-main">
+              <div className="row-title">Пройти обучение заново</div>
+              <div className="row-sub">Короткий тур по приложению</div>
+            </div>
+            <ChevronRight size={18} className="subtle" />
+          </button>
           <button className="row" onClick={() => openSheet({ name: 'policy' })}>
             <div className="row-icon">
               <FileText size={18} />

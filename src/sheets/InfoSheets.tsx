@@ -1,4 +1,4 @@
-import { FileText, Moon, RotateCcw, Smartphone } from 'lucide-react';
+import { FileText, GraduationCap, Moon, RotateCcw, Smartphone } from 'lucide-react';
 import { api } from '../api';
 import { config } from '../config';
 import { SCHOOL } from '../domain/catalog';
@@ -13,6 +13,7 @@ export function SettingsSheet() {
   const scheme = useApp((s) => s.scheme);
   const backend = useApp((s) => s.backend);
   const resetDemo = useApp((s) => s.resetDemo);
+  const setOnboarded = useApp((s) => s.setOnboarded);
   const { openSheet, closeSheet } = useNav();
 
   const onReset = async () => {
@@ -46,6 +47,21 @@ export function SettingsSheet() {
             <div className="row-sub">Как в Telegram · сейчас {scheme === 'dark' ? 'тёмная' : 'светлая'}</div>
           </div>
         </div>
+        <button
+          className="row"
+          onClick={() => {
+            closeSheet();
+            setOnboarded(false);
+          }}
+        >
+          <div className="row-icon">
+            <GraduationCap size={18} />
+          </div>
+          <div className="row-main">
+            <div className="row-title">Пройти обучение заново</div>
+            <div className="row-sub">Короткий тур по приложению</div>
+          </div>
+        </button>
         <button className="row" onClick={() => openSheet({ name: 'policy' })}>
           <div className="row-icon">
             <FileText size={18} />

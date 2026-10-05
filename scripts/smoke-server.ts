@@ -92,6 +92,16 @@ try {
   assert.equal((await call('/api/purchase', { productId: 'consultation' }, alice)).data.error.code, 'LEVEL_REQUIRED');
   step('покупка в Лавке: проверка баланса, повторной покупки и уровня');
 
+  r = await call('/api/enroll', { courseId: 'anxiety', method: 'sbp' }, alice);
+  assert.match(r.data.enrollment.receipt, /^ATL-/);
+  assert.equal((await call('/api/enroll', { courseId: 'anxiety', method: 'card' }, alice)).data.error.code, 'ALREADY_OWNED');
+  assert.equal((await call('/api/enroll', { courseId: 'relations', method: 'cash' }, alice)).data.error.code, 'VALIDATION');
+  step('тестовая оплата программы: чек, защита от повторной записи');
+
+  r = await call('/api/taps', { count: 5, boosted: 9 }, alice);
+  assert.equal(r.data.error.code, 'VALIDATION');
+  step('вспышка: усиленных тапов не больше обычных');
+
   r = await call('/api/apply', { courseId: 'anxiety' }, alice);
   assert.equal(r.data.state.applications.length, 1);
   step('заявка на программу');

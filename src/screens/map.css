@@ -1,0 +1,244 @@
+.journey-intro {
+  padding: 4px var(--gutter) 6px;
+}
+
+.journey-intro h1 {
+  font-size: 42px;
+  margin: 8px 0 10px;
+}
+
+.journey-intro h1 em {
+  color: var(--accent);
+}
+
+.journey-intro p {
+  font-size: 14px;
+}
+
+.map-canvas {
+  position: relative;
+  width: calc(100% - var(--gutter) * 2);
+  max-width: 420px;
+  margin: 18px auto 0;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.topo {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 1;
+}
+
+.trail-dash {
+  fill: none;
+  stroke: var(--line-strong);
+  stroke-width: 2;
+  stroke-dasharray: 2 9;
+  stroke-linecap: round;
+}
+
+.trail-done {
+  fill: none;
+  stroke: url(#trail);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  filter: drop-shadow(0 0 6px var(--accent));
+  animation: draw 2s 0.3s var(--ease) forwards;
+}
+
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.node {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.node-orb {
+  position: absolute;
+  left: -40px;
+  top: -40px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--bg-elev), 0 0 0 5px var(--line-strong), var(--shadow-s);
+}
+
+.node-orb > .img {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.node.locked .node-orb > .img {
+  filter: grayscale(1) brightness(0.6);
+}
+
+.node.passed .node-orb {
+  box-shadow: 0 0 0 4px var(--bg-elev), 0 0 0 6px var(--teal), var(--shadow-s);
+}
+
+.node.current .node-orb {
+  box-shadow: 0 0 0 4px var(--bg-elev), 0 0 0 7px var(--accent), 0 0 40px 6px var(--accent-soft);
+}
+
+.node.current .node-orb::before {
+  content: '';
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: node-pulse 2s ease-out infinite;
+}
+
+@keyframes node-pulse {
+  from {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.node-lock {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+.node-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 0 0 3px var(--bg-elev);
+}
+
+.node-me {
+  position: absolute;
+  left: 50%;
+  top: -18px;
+  transform: translateX(-50%);
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--accent-2), var(--accent));
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 0 0 3px var(--bg-elev), var(--shadow-s);
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+@keyframes bob {
+  50% {
+    transform: translate(-50%, -4px);
+  }
+}
+
+.node-card {
+  position: absolute;
+  top: -34px;
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.side-right .node-card {
+  left: 60px;
+}
+
+.side-left .node-card {
+  right: 60px;
+  text-align: right;
+  align-items: flex-end;
+}
+
+.node-n {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+.node-title {
+  font-size: 21px;
+  white-space: nowrap;
+}
+
+.node.current .node-title {
+  color: var(--accent);
+}
+
+.node.locked .node-title {
+  color: var(--text-3);
+}
+
+.node-world {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.node-meta {
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-3);
+}
+
+.node.current .node-meta {
+  color: var(--accent);
+}
+
+.node.passed .node-meta {
+  color: var(--teal);
+}
+
+.journey-goal {
+  margin: 16px var(--gutter) 0;
+  padding: 16px 18px;
+  border-radius: var(--radius-m);
+  font-size: 14px;
+}
+
+.journey-goal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.journey-goal-row span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

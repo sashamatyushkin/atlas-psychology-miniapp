@@ -1,4 +1,4 @@
-import type { GameState, Level, TaskId, UpgradeKind } from './types';
+import type { GameState, Level, TaskId, UpgradeKind, World } from './types';
 
 /** Параметры экономики. Меняйте здесь — изменится и клиент, и сервер. */
 export const ECONOMY = {
@@ -45,6 +45,28 @@ export const LEVELS: Level[] = [
   { index: 4, title: 'Проводник', min: 300_000 },
   { index: 5, title: 'Мудрец', min: 1_000_000 },
 ];
+
+/** «Миры» сферы: каждый уровень открывает новый пейзаж. */
+export const WORLDS: World[] = [
+  { level: 0, name: 'Звёздная ночь', image: 'orb-night', glow: '140, 150, 255' },
+  { level: 1, name: 'Сумеречное озеро', image: 'purple-lake', glow: '190, 140, 255' },
+  { level: 2, name: 'Над облаками', image: 'hero-clouds', glow: '255, 170, 120' },
+  { level: 3, name: 'Альпийский день', image: 'alps', glow: '130, 210, 255' },
+  { level: 4, name: 'Бирюзовая гавань', image: 'harbor-lake', glow: '90, 220, 200' },
+  { level: 5, name: 'Рассвет у океана', image: 'beach', glow: '255, 210, 140' },
+];
+
+export const worldFor = (levelIndex: number) => WORLDS[Math.min(levelIndex, WORLDS.length - 1)]!;
+
+/** Комбо и вспышка: каждые 100 касаний подряд — ×2 искры на 5 секунд. */
+export const FLASH = {
+  every: 100,
+  durationSec: 5,
+  /** комбо прерывается, если пауза между касаниями больше */
+  comboGapMs: 700,
+  /** сервер разрешает не больше стольких усиленных тапов на каждые 100 касаний */
+  maxBoostedPerFlash: 90,
+} as const;
 
 export const TASK_REWARDS: Record<TaskId, number> = {
   quiz: 1000,

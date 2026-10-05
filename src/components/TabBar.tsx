@@ -24,6 +24,7 @@ export function TabBar({ hidden }: { hidden: boolean }) {
             setTab(id);
           }}
           aria-current={tab === id ? 'page' : undefined}
+          data-tour={`tab-${id}`}
         >
           <Icon size={20} strokeWidth={tab === id ? 2.2 : 1.8} />
           <span>{label}</span>

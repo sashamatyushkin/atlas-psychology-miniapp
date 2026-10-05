@@ -73,8 +73,8 @@ export class MockApi implements Api {
     return { user: getUser(), state, serverNow, backend: false };
   }
 
-  syncTaps(count: number) {
-    return this.run((s, now) => engine.applyTaps(s, count, now), { latency: false, lazy: true });
+  syncTaps(count: number, boosted: number) {
+    return this.run((s, now) => engine.applyTaps(s, count, now, boosted), { latency: false, lazy: true });
   }
 
   claimDaily() {
@@ -111,8 +111,12 @@ export class MockApi implements Api {
     return this.run((s, now) => ({ state: engine.applyCourse(s, courseId, now) }));
   }
 
-  completePractice() {
-    return this.run((s) => ({ state: engine.completePractice(s) }), { latency: false });
+  completePractice(practiceId: string) {
+    return this.run((s, now) => ({ state: engine.completePractice(s, practiceId, now) }), { latency: false });
+  }
+
+  enrollCourse(courseId: string, method: Parameters<Api['enrollCourse']>[1]) {
+    return this.run((s, now) => engine.enrollCourse(s, courseId, method, now, rand));
   }
 
   async resetDemo(): Promise<StateResult> {

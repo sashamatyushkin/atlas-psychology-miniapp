@@ -2,17 +2,32 @@ import { create } from 'zustand';
 import { api, errorMessage, type StateResult } from '../api';
 import { currentEnergy } from '../domain/engine';
 import { tapValue } from '../domain/economy';
-import type { GameState, Purchase, TaskId, TgUser, UpgradeKind } from '../domain/types';
+import type { Enrollment, GameState, PaymentMethod, Purchase, TaskId, TgUser, UpgradeKind } from '../domain/types';
 import type { LeadForm } from '../domain/validation';
 import { getStartParam, setHapticsEnabled } from '../telegram/webapp';
 
 const PREFS_KEY = 'atlas_prefs_v1';
 
-function loadPrefs(): { haptics: boolean } {
+interface Prefs {
+  haptics: boolean;
+  /** онбординг (слайды + тур с подсветкой) пройден */
+  onboarded: boolean;
+}
+
+function loadPrefs(): Prefs {
+  const defaults: Prefs = { haptics: true, onboarded: false };
   try {
-    return { haptics: true, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') };
+    return { ...defaults, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? '{}') };
   } catch {
-    return { haptics: true };
+    return defaults;
+  }
+}
+
+function savePrefs(patch: Partial<Prefs>) {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...patch }));
+  } catch {
+    /* приватный режим */
   }
 }
 
@@ -27,6 +42,11 @@ interface AppStore {
   pendingTaps: number;
   /** тапы в полёте */
   inflightTaps: number;
+  /** из них — во время вспышки (×2) */
+  pendingBoosted: number;
+  inflightBoosted: number;
+  onboarded: boolean;
+  setOnboarded(v: boolean): void;
   scheme: 'light' | 'dark';
   haptics: boolean;
   startParam: string | undefined;
@@ -38,7 +58,7 @@ interface AppStore {
   setScheme(s: 'light' | 'dark'): void;
   setHaptics(v: boolean): void;
   now(): number;
-  tap(): boolean;
+  tap(boosted?: boolean): boolean;
   flushTaps(): Promise<void>;
 
   claimDaily(): Promise<number>;
@@ -50,6 +70,7 @@ interface AppStore {
   purchase(productId: string): Promise<Purchase>;
   applyCourse(courseId: string): Promise<void>;
   completePractice(practiceId: string): Promise<void>;
+  enrollCourse(courseId: string, method: PaymentMethod): Promise<Enrollment>;
   resetDemo(): Promise<void>;
 }
 
@@ -73,6 +94,13 @@ export const useApp = create<AppStore>((set, get) => {
     clockOffset: 0,
     pendingTaps: 0,
     inflightTaps: 0,
+    pendingBoosted: 0,
+    inflightBoosted: 0,
+    onboarded: loadPrefs().onboarded,
+    setOnboarded(v) {
+      savePrefs({ onboarded: v });
+      set({ onboarded: v });
+    },
     scheme: 'dark',
     haptics: loadPrefs().haptics,
     startParam: getStartParam(),
@@ -107,38 +135,39 @@ export const useApp = create<AppStore>((set, get) => {
 
     setHaptics(v) {
       setHapticsEnabled(v);
-      try {
-        localStorage.setItem(PREFS_KEY, JSON.stringify({ haptics: v }));
-      } catch {
-        /* noop */
-      }
+      savePrefs({ haptics: v });
       set({ haptics: v });
     },
 
     now: () => Date.now() + get().clockOffset,
 
-    tap() {
-      const { state, pendingTaps, inflightTaps } = get();
+    tap(boosted = false) {
+      const { state, pendingTaps, inflightTaps, pendingBoosted } = get();
       if (!state) return false;
       const value = tapValue(state);
       const energy = currentEnergy(state, get().now()) - (pendingTaps + inflightTaps) * value;
       if (energy < value) return false;
-      set({ pendingTaps: pendingTaps + 1 });
+      set({ pendingTaps: pendingTaps + 1, pendingBoosted: pendingBoosted + (boosted ? 1 : 0) });
       return true;
     },
 
     async flushTaps() {
-      const { pendingTaps, inflightTaps } = get();
+      const { pendingTaps, inflightTaps, pendingBoosted } = get();
       if (pendingTaps === 0 || inflightTaps > 0) return;
-      set({ pendingTaps: 0, inflightTaps: pendingTaps });
+      set({ pendingTaps: 0, inflightTaps: pendingTaps, pendingBoosted: 0, inflightBoosted: pendingBoosted });
       try {
-        const r = await api.syncTaps(pendingTaps);
-        set({ inflightTaps: 0 });
+        const r = await api.syncTaps(pendingTaps, pendingBoosted);
+        set({ inflightTaps: 0, inflightBoosted: 0 });
         accept(r);
       } catch (e) {
         // сетевой сбой — вернём тапы в очередь; прочие ошибки — отбрасываем
         const retry = (e as { code?: string }).code === 'NETWORK';
-        set((s) => ({ inflightTaps: 0, pendingTaps: retry ? s.pendingTaps + pendingTaps : s.pendingTaps }));
+        set((s) => ({
+          inflightTaps: 0,
+          inflightBoosted: 0,
+          pendingTaps: retry ? s.pendingTaps + pendingTaps : s.pendingTaps,
+          pendingBoosted: retry ? s.pendingBoosted + pendingBoosted : s.pendingBoosted,
+        }));
       }
     },
 
@@ -170,9 +199,12 @@ export const useApp = create<AppStore>((set, get) => {
     async completePractice(practiceId) {
       await mutate(() => api.completePractice(practiceId));
     },
+    async enrollCourse(courseId, method) {
+      return (await mutate(() => api.enrollCourse(courseId, method))).enrollment;
+    },
     async resetDemo() {
       if (!api.canResetDemo) return;
-      set({ pendingTaps: 0, inflightTaps: 0 });
+      set({ pendingTaps: 0, inflightTaps: 0, pendingBoosted: 0, inflightBoosted: 0 });
       accept(await api.resetDemo());
     },
   };
@@ -182,5 +214,9 @@ setHapticsEnabled(loadPrefs().haptics);
 
 /** Баланс с учётом ещё не подтверждённых тапов. */
 export function useDisplayBalance(): number {
-  return useApp((s) => (s.state ? s.state.balance + (s.pendingTaps + s.inflightTaps) * tapValue(s.state) : 0));
+  return useApp((s) =>
+    s.state
+      ? s.state.balance + (s.pendingTaps + s.inflightTaps + s.pendingBoosted + s.inflightBoosted) * tapValue(s.state)
+      : 0,
+  );
 }

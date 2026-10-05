@@ -7,7 +7,8 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { Amount } from '../components/Spark';
 import { botStartLink, config, publicUrl } from '../config';
 import { encodeBotEvent } from '../domain/botLinks';
-import { findCourse } from '../domain/catalog';
+import { findCourse, reviewsFor } from '../domain/catalog';
+import { ReviewCard } from '../components/ReviewCard';
 import { TASK_REWARDS } from '../domain/economy';
 import { GUIDE } from '../domain/guide';
 import { GOALS, PROFILES, QUIZ } from '../domain/quiz';
@@ -253,6 +254,13 @@ function Result({ onClaim, onRetake }: { onClaim: () => void; onRetake: () => vo
             </div>
           ))}
         </div>
+
+        {reviewsFor(course.id)[0] && (
+          <>
+            <h3 className="result-h display">Уже прошли этот путь</h3>
+            <ReviewCard review={reviewsFor(course.id)[0]!} />
+          </>
+        )}
 
         <h3 className="result-h display">Программа для вас</h3>
         <button className="rec-course" onClick={() => openSheet({ name: 'course', id: course.id })}>

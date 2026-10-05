@@ -4,7 +4,8 @@ import { BalanceChip } from '../components/BalanceChip';
 import { Img } from '../components/Img';
 import { Amount, Spark, formatNum } from '../components/Spark';
 import { useEnergy } from '../hooks/useEnergy';
-import { COURSES, SCHOOL } from '../domain/catalog';
+import { COURSES, REVIEWS, SCHOOL } from '../domain/catalog';
+import { ReviewCard } from '../components/ReviewCard';
 import { dailyStatus } from '../domain/engine';
 import { LEVELS, TASK_REWARDS, levelFor } from '../domain/economy';
 import { PROFILES } from '../domain/quiz';
@@ -51,7 +52,7 @@ export function Home() {
       </section>
 
       <div className="rise rise-2">
-        <PassCard onOpen={() => setTab('profile')} />
+        <PassCard onOpen={() => push({ name: 'map' })} />
       </div>
 
       <section className="section rise rise-3">
@@ -123,6 +124,20 @@ export function Home() {
       </section>
 
       <section className="section">
+        <div className="section-head">
+          <h2>Отзывы</h2>
+          <span className="subtle num" style={{ fontSize: 13 }}>
+            {SCHOOL.rating} ★ · {formatNum(SCHOOL.graduates)} выпускников
+          </span>
+        </div>
+        <div className="reviews">
+          {REVIEWS.map((r) => (
+            <ReviewCard key={r.id} review={r} />
+          ))}
+        </div>
+      </section>
+
+      <section className="section">
         <div className="proof card">
           <div>
             <b className="num">{formatNum(SCHOOL.graduates)}</b>
@@ -183,7 +198,7 @@ function PassCard({ onOpen }: { onOpen: () => void }) {
   const number = String(user.id).padStart(10, '0').replace(/(\d{4})(?=\d)/g, '$1 ');
 
   return (
-    <button className="pass" onClick={onOpen} aria-label="Ваш пропуск">
+    <button className="pass" onClick={onOpen} aria-label="Ваш пропуск" data-tour="pass">
       <div className="pass-main">
         <div className="eyebrow pass-eyebrow">Atlas pass</div>
         <div className="pass-level display">{level.title}</div>
@@ -249,7 +264,7 @@ function LeadMagnetCard({ onStart, onGuide }: { onStart: () => void; onGuide: ()
   if (claimed && state.quiz) {
     const p = PROFILES[state.quiz.profile];
     return (
-      <div className="lm-result">
+      <div className="lm-result" data-tour="leadmagnet">
         <Img name={p.image} alt={p.word} />
         <div className="course-shade" />
         <div className="lm-result-top">
@@ -272,6 +287,7 @@ function LeadMagnetCard({ onStart, onGuide }: { onStart: () => void; onGuide: ()
   return (
     <button
       className="lm-card"
+      data-tour="leadmagnet"
       onClick={() => {
         haptic.impact('light');
         onStart();

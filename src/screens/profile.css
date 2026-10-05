@@ -297,3 +297,121 @@
   font-size: 12px;
   margin-top: 18px;
 }
+
+/* ── Таймлайн «Ваш путь» ─────────────────────────────── */
+.timeline {
+  overflow-x: auto;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter) 4px;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.timeline::-webkit-scrollbar {
+  display: none;
+}
+
+.timeline-track {
+  display: flex;
+  width: max-content;
+}
+
+.tl-item {
+  width: 148px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  padding-right: 12px;
+}
+
+.tl-head {
+  display: flex;
+  flex-direction: column;
+  min-height: 44px;
+}
+
+.tl-day {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.tl-item.accent .tl-day {
+  color: var(--accent);
+}
+
+.tl-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tl-line {
+  position: relative;
+  height: 20px;
+  margin-right: -12px;
+}
+
+.tl-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--line-strong);
+}
+
+.tl-dot {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+}
+
+.tl-item.accent .tl-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.tl-next .tl-dot {
+  border-style: dashed;
+  border-color: var(--text-3);
+}
+
+.tl-next .tl-line::before {
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 4px, transparent 4px 9px);
+}
+
+.tl-img {
+  height: 88px;
+  border-radius: 14px;
+}
+
+.tl-placeholder {
+  display: grid;
+  place-items: center;
+  border: 1.5px dashed var(--line-strong);
+  color: var(--accent);
+  font-size: 22px;
+}
+
+.tl-sub {
+  display: block;
+  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--text-3);
+  line-height: 1.3;
+}

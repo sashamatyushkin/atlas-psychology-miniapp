@@ -1,11 +1,14 @@
 import { CloudOff } from 'lucide-react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { MainButtonHost } from './components/MainButton';
+import { HOME_TOUR, OnboardingSlides, Tour } from './components/Onboarding';
 import { StateView } from './components/StateView';
 import { TabBar } from './components/TabBar';
 import { TelegramChrome } from './components/TelegramChrome';
 import { Toasts } from './components/Toasts';
+import { Checkout } from './screens/Checkout';
 import { Guide } from './screens/Guide';
+import { JourneyMap } from './screens/JourneyMap';
 import { BrandMark, Home } from './screens/Home';
 import { Practice } from './screens/Practice';
 import { PracticePlayer } from './screens/PracticePlayer';
@@ -35,6 +38,10 @@ function RouteScreen({ route }: { route: Route }) {
       return <PracticePlayer id={route.id} />;
     case 'purchases':
       return <Purchases />;
+    case 'map':
+      return <JourneyMap />;
+    case 'checkout':
+      return <Checkout courseId={route.courseId} />;
   }
 }
 
@@ -62,7 +69,31 @@ export function App() {
   return <Shell />;
 }
 
+type Intro = 'none' | 'slides' | 'tour';
+
+/** Онбординг не показываем поверх диплинка (например, рекламной ссылки на тест). */
+const DEEP_ROUTES = new Set(['quiz', 'guide']);
+
 function Shell() {
+  const onboarded = useApp((s) => s.onboarded);
+  const setOnboarded = useApp((s) => s.setOnboarded);
+  const [intro, setIntro] = useState<Intro>(() =>
+    !useApp.getState().onboarded && !DEEP_ROUTES.has(useApp.getState().startParam ?? '') ? 'slides' : 'none',
+  );
+
+  // «Пройти обучение заново» из настроек
+  useEffect(() => {
+    if (!onboarded && intro === 'none' && useApp.getState().startParamConsumed) {
+      useNav.getState().reset();
+      setIntro('slides');
+    }
+  }, [onboarded]);
+
+  const finishIntro = useCallback(() => {
+    setOnboarded(true);
+    setIntro('none');
+  }, [setOnboarded]);
+
   const tab = useNav((s) => s.tab);
   const stack = useNav((s) => s.stack);
   const flushTaps = useApp((s) => s.flushTaps);
@@ -105,6 +136,16 @@ function Shell() {
         </div>
       ))}
       <TabBar hidden={stack.length > 0} />
+      {intro === 'slides' && (
+        <OnboardingSlides
+          onDone={() => {
+            useNav.getState().reset();
+            setIntro('tour');
+          }}
+          onSkip={finishIntro}
+        />
+      )}
+      {intro === 'tour' && <Tour steps={HOME_TOUR} onDone={finishIntro} />}
       <SheetHost />
       <MainButtonHost />
       <Toasts />

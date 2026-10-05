@@ -3,9 +3,10 @@
  * возвращают новое состояние. Один и тот же код исполняется в мок-слое
  * (браузер) и на сервере, поэтому поведение всегда совпадает.
  */
-import { findCourse, findProduct } from './catalog';
+import { PRODUCTS, findCourse, findProduct } from './catalog';
 import {
   ECONOMY,
+  FLASH,
   TASK_REWARDS,
   dailyRewardFor,
   dayKey,
@@ -16,7 +17,7 @@ import {
   upgradeCost,
 } from './economy';
 import { isValidAnswers, scoreQuiz } from './quiz';
-import type { GameState, ProductKind, Purchase, TaskId, UpgradeKind } from './types';
+import type { Enrollment, GameState, PaymentMethod, ProductKind, Purchase, TaskId, UpgradeKind } from './types';
 import { DomainError } from './types';
 import { isFormValid, normalizeName, validateLeadForm, type LeadForm } from './validation';
 
@@ -40,6 +41,10 @@ export function createInitialState(now: number): GameState {
     purchases: [],
     applications: [],
     practicesDone: 0,
+    practiceLog: [],
+    levelsAt: { '0': now },
+    flashTapsUsed: 0,
+    enrollments: [],
     createdAt: now,
   };
 }
@@ -66,6 +71,10 @@ export function normalizeState(raw: unknown, now: number): GameState {
     tasks: r.tasks ?? {},
     purchases: Array.isArray(r.purchases) ? r.purchases : [],
     applications: Array.isArray(r.applications) ? r.applications : [],
+    practiceLog: Array.isArray(r.practiceLog) ? r.practiceLog : [],
+    levelsAt: r.levelsAt && typeof r.levelsAt === 'object' ? r.levelsAt : { '0': num(r.createdAt, now) },
+    flashTapsUsed: Math.max(0, num(r.flashTapsUsed, 0)),
+    enrollments: Array.isArray(r.enrollments) ? r.enrollments : [],
   };
 }
 
@@ -78,8 +87,17 @@ function settleEnergy(s: GameState, now: number): GameState {
   return { ...s, energy: currentEnergy(s, now), energyAt: now };
 }
 
-function earn(s: GameState, amount: number): GameState {
-  return { ...s, balance: s.balance + amount, totalEarned: s.totalEarned + amount };
+/** Начисление искр. Заодно фиксирует момент достижения новых уровней — для карты и таймлайна. */
+function earn(s: GameState, amount: number, now = Date.now()): GameState {
+  const totalEarned = s.totalEarned + amount;
+  const before = levelFor(s.totalEarned).level.index;
+  const after = levelFor(totalEarned).level.index;
+  let levelsAt = s.levelsAt;
+  if (after > before) {
+    levelsAt = { ...levelsAt };
+    for (let i = before + 1; i <= after; i++) levelsAt[String(i)] ??= now;
+  }
+  return { ...s, balance: s.balance + amount, totalEarned, levelsAt };
 }
 
 // ── Тапы ────────────────────────────────────────────────────────────────
@@ -87,25 +105,38 @@ function earn(s: GameState, amount: number): GameState {
 /**
  * Принимает пачку тапов. Сервер не доверяет клиенту: число тапов ограничено
  * доступной энергией и физически возможной частотой с момента прошлой синхронизации.
+ * boosted — тапы во время «вспышки» (×2). Их не больше, чем позволяет число
+ * совершённых касаний: 90 усиленных на каждые 100 касаний.
  */
-export function applyTaps(s: GameState, count: number, now: number): { state: GameState; accepted: number } {
+export function applyTaps(
+  s: GameState,
+  count: number,
+  now: number,
+  boosted = 0,
+): { state: GameState; accepted: number; boostedAccepted: number } {
   if (!Number.isInteger(count) || count < 0 || count > 10_000) throw new DomainError('VALIDATION', 'Некорректное число тапов');
+  if (!Number.isInteger(boosted) || boosted < 0 || boosted > count) throw new DomainError('VALIDATION', 'Некорректное число тапов');
   const settled = settleEnergy(s, now);
   const value = tapValue(settled);
   const elapsedSec = Math.max(0, now - s.lastTapSyncAt) / 1000;
   const rateLimit = Math.floor((elapsedSec + ECONOMY.tapBurstSec) * ECONOMY.maxTapsPerSec);
   const energyLimit = Math.floor(settled.energy / value);
   const accepted = Math.max(0, Math.min(count, rateLimit, energyLimit));
+  const totalTaps = settled.totalTaps + accepted;
+  const flashBudget = Math.floor(totalTaps / FLASH.every) * FLASH.maxBoostedPerFlash - settled.flashTapsUsed;
+  const boostedAccepted = Math.max(0, Math.min(boosted, accepted, flashBudget));
   const next = earn(
     {
       ...settled,
       energy: settled.energy - accepted * value,
-      totalTaps: settled.totalTaps + accepted,
+      totalTaps,
+      flashTapsUsed: settled.flashTapsUsed + boostedAccepted,
       lastTapSyncAt: now,
     },
-    accepted * value,
+    (accepted + boostedAccepted) * value,
+    now,
   );
-  return { state: next, accepted };
+  return { state: next, accepted, boostedAccepted };
 }
 
 // ── Ежедневная награда ──────────────────────────────────────────────────
@@ -124,7 +155,7 @@ export function claimDaily(s: GameState, now: number): { state: GameState; rewar
   const st = dailyStatus(s, now);
   if (!st.available) throw new DomainError('ALREADY_CLAIMED', 'Награда за сегодня уже получена');
   const reward = dailyRewardFor(st.nextStreak);
-  return { state: earn({ ...s, daily: { lastDay: dayKey(now), streak: st.nextStreak } }, reward), reward };
+  return { state: earn({ ...s, daily: { lastDay: dayKey(now), streak: st.nextStreak } }, reward, now), reward };
 }
 
 // ── Бусты и улучшения ───────────────────────────────────────────────────
@@ -160,13 +191,13 @@ export function completeTask(s: GameState, id: TaskId, now: number): { state: Ga
   }
   if (s.tasks[id]) throw new DomainError('ALREADY_CLAIMED', 'Задание уже выполнено');
   const reward = TASK_REWARDS[id];
-  return { state: earn({ ...s, tasks: { ...s.tasks, [id]: now } }, reward), reward };
+  return { state: earn({ ...s, tasks: { ...s.tasks, [id]: now } }, reward, now), reward };
 }
 
 /** Начисление рефереру (вызывается только сервером). */
 export function rewardReferral(s: GameState, now: number): { state: GameState; reward: number } {
   const reward = TASK_REWARDS.invite;
-  return { state: earn({ ...s, tasks: { ...s.tasks, invite: now } }, reward), reward };
+  return { state: earn({ ...s, tasks: { ...s.tasks, invite: now } }, reward, now), reward };
 }
 
 // ── Лид-магнит ──────────────────────────────────────────────────────────
@@ -184,7 +215,7 @@ export function claimLeadMagnet(s: GameState, form: LeadForm, now: number): { st
   // повторная отправка обновляет данные лида, но не начисляет награду второй раз
   if (s.tasks.quiz) return { state: { ...s, lead }, reward: 0 };
   const reward = TASK_REWARDS.quiz;
-  return { state: earn({ ...s, lead, tasks: { ...s.tasks, quiz: now } }, reward), reward };
+  return { state: earn({ ...s, lead, tasks: { ...s.tasks, quiz: now } }, reward, now), reward };
 }
 
 // ── Лавка ───────────────────────────────────────────────────────────────
@@ -242,6 +273,49 @@ export function applyCourse(s: GameState, courseId: string, now: number): GameSt
   return { ...s, applications: [{ courseId, at: now }, ...s.applications] };
 }
 
-export function completePractice(s: GameState): GameState {
-  return { ...s, practicesDone: s.practicesDone + 1 };
+export function completePractice(s: GameState, practiceId: string, now: number): GameState {
+  if (!/^[a-z0-9]{1,24}$/.test(practiceId)) throw new DomainError('VALIDATION', 'Некорректная практика');
+  return {
+    ...s,
+    practicesDone: s.practicesDone + 1,
+    practiceLog: [{ id: practiceId, at: now }, ...s.practiceLog].slice(0, 12),
+  };
+}
+
+// ── Запись на программу (оплата в тестовом режиме) ─────────────────────
+
+/** Стоимость программы с учётом промокода из Лавки, если он есть у пользователя. */
+export function coursePrice(s: GameState, courseId: string) {
+  const course = findCourse(courseId);
+  if (!course) throw new DomainError('NOT_FOUND', 'Программа не найдена');
+  const promo = PRODUCTS.find((p) => p.kind === 'promo' && p.courseId === courseId && isOwned(s, p.id));
+  const discountPct = promo?.discountPct ?? 0;
+  const purchase = promo ? s.purchases.find((p) => p.productId === promo.id) : undefined;
+  return {
+    base: course.priceRub,
+    discountPct,
+    promoCode: purchase?.code ?? null,
+    total: Math.round((course.priceRub * (100 - discountPct)) / 100),
+  };
+}
+
+export function enrollCourse(
+  s: GameState,
+  courseId: string,
+  method: PaymentMethod,
+  now: number,
+  rand: Rand,
+): { state: GameState; enrollment: Enrollment } {
+  if (!['card', 'sbp', 'installments'].includes(method)) throw new DomainError('VALIDATION', 'Неизвестный способ оплаты');
+  const price = coursePrice(s, courseId);
+  if (s.enrollments.some((e) => e.courseId === courseId)) throw new DomainError('ALREADY_OWNED', 'Вы уже записаны на эту программу');
+  const enrollment: Enrollment = {
+    courseId,
+    at: now,
+    amountRub: price.total,
+    discountPct: price.discountPct,
+    method,
+    receipt: `ATL-${randomCode(4, rand)}-${randomCode(4, rand)}`,
+  };
+  return { state: { ...s, enrollments: [enrollment, ...s.enrollments] }, enrollment };
 }

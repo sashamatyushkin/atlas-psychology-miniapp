@@ -108,6 +108,8 @@ body {
   font-size: 15px;
   line-height: 1.45;
   font-feature-settings: 'ss01', 'cv11';
+  /* у Cormorant по умолчанию «старостильные» цифры (3, 4, 7, 9 уходят ниже строки) */
+  font-variant-numeric: lining-nums;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
@@ -201,7 +203,7 @@ p {
 }
 
 .num {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 /* огромное «стеклянное» слово поверх фото (референс Panora) */

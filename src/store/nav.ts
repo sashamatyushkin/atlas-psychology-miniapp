@@ -6,7 +6,9 @@ export type Route =
   | { name: 'quiz' }
   | { name: 'guide' }
   | { name: 'practice'; id: string }
-  | { name: 'purchases' };
+  | { name: 'purchases' }
+  | { name: 'map' }
+  | { name: 'checkout'; courseId: string };
 
 export type Sheet =
   | { name: 'product'; id: string }
@@ -29,6 +31,8 @@ interface NavStore {
   closeSheet(): void;
   /** Обработчик Telegram BackButton: сначала закрываем шит, затем экран */
   back(): void;
+  /** Вернуться на главную, закрыв всё поверх */
+  reset(): void;
 }
 
 export const useNav = create<NavStore>((set, get) => ({
@@ -41,6 +45,7 @@ export const useNav = create<NavStore>((set, get) => ({
   replace: (r) => set((s) => ({ stack: [...s.stack.slice(0, -1), r] })),
   openSheet: (sheet) => set({ sheet }),
   closeSheet: () => set({ sheet: null }),
+  reset: () => set({ tab: 'home', stack: [], sheet: null }),
   back() {
     if (get().sheet) set({ sheet: null });
     else get().pop();

@@ -483,3 +483,13 @@
   margin-top: 20px;
   font-size: 12.5px !important;
 }
+
+.cs-price s {
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.cs-ask {
+  margin-top: 22px;
+}

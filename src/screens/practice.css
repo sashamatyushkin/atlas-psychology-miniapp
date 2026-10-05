@@ -55,6 +55,16 @@
   text-align: left;
 }
 
+.level-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-title svg {
+  color: #f0d3a8;
+}
+
 .level-row {
   display: flex;
   justify-content: space-between;
@@ -181,8 +191,8 @@
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.22),
     0 0 0 8px rgba(255, 255, 255, 0.04),
-    0 30px 80px -10px rgba(217, 169, 108, 0.45),
-    0 0 120px -20px rgba(120, 140, 255, 0.35),
+    0 30px 80px -10px rgba(217, 169, 108, calc(0.35 + var(--combo, 0) * 0.4)),
+    0 0 calc(120px + var(--combo, 0) * 80px) -20px rgba(var(--glow, 120, 140, 255), calc(0.35 + var(--combo, 0) * 0.45)),
     inset 0 -20px 50px rgba(0, 0, 0, 0.55);
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1);
   transition: transform 0.35s var(--ease-spring);
@@ -391,4 +401,191 @@
   .action {
     height: 44px;
   }
+}
+
+/* ── Миры, комбо и вспышка ───────────────────────────── */
+
+.practice-bg img {
+  transition: opacity 1.2s var(--ease);
+}
+
+.practice-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(60% 40% at 50% 48%, rgba(var(--glow, 120, 140, 255), 0.22), transparent 70%);
+  transition: background 1s;
+}
+
+.combo-ring {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  transform: rotate(-90deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.combo-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 1.2;
+}
+
+.combo-fill {
+  fill: none;
+  stroke: #f0d3a8;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 3px rgba(240, 211, 168, 0.9));
+  transition: stroke-dashoffset 0.2s linear;
+}
+
+.flashing .combo-fill {
+  stroke: #ffe3a6;
+  stroke-width: 2.4;
+}
+
+.combo-chip {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: rgba(20, 16, 12, 0.55);
+  border: 1px solid rgba(240, 211, 168, 0.45);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  font-size: 15px;
+  font-weight: 800;
+  color: #f0d3a8;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: pop 0.35s var(--ease-spring) both;
+}
+
+.combo-chip span {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.flash-caption {
+  color: #ffe3a6;
+  font-weight: 700;
+  animation: pulse-text 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-text {
+  to {
+    opacity: 0.6;
+  }
+}
+
+.practice > .flash-burst {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(55% 40% at 50% 50%, rgba(255, 222, 160, 0.35), transparent 70%);
+  animation: burst 1.2s ease-out infinite alternate;
+}
+
+@keyframes burst {
+  from {
+    opacity: 1;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 0.55;
+    transform: scale(1.08);
+  }
+}
+
+.flashing .orb-core {
+  box-shadow:
+    0 0 0 2px rgba(255, 227, 166, 0.8),
+    0 0 0 10px rgba(255, 227, 166, 0.12),
+    0 0 140px 10px rgba(255, 210, 140, 0.65),
+    inset 0 -20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.flashing .orb-ring {
+  border-color: rgba(255, 227, 166, 0.6) !important;
+  animation-duration: 1.6s;
+}
+
+.float.gold {
+  color: #ffe3a6;
+  font-size: 36px;
+  text-shadow: 0 0 22px rgba(255, 200, 120, 1), 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.practice > .world-reveal {
+  position: absolute;
+  inset: 0;
+  z-index: 50 !important;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  animation: fade 0.5s var(--ease) both;
+}
+
+.world-reveal > .img {
+  position: absolute;
+  inset: 0;
+  animation: reveal-zoom 3.2s var(--ease) both;
+}
+
+.world-reveal > .img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.75));
+}
+
+@keyframes reveal-zoom {
+  from {
+    clip-path: circle(0% at 50% 50%);
+    transform: scale(1.2);
+  }
+  40% {
+    clip-path: circle(75% at 50% 50%);
+  }
+  to {
+    clip-path: circle(75% at 50% 50%);
+    transform: scale(1);
+  }
+}
+
+.world-reveal-text {
+  position: relative;
+  text-align: center;
+  animation: rise 0.8s 0.6s var(--ease) both;
+}
+
+.world-reveal-text .eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.world-reveal-text .display {
+  font-size: 48px;
+  margin-top: 10px;
+}
+
+.world-reveal-level {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 700;
 }

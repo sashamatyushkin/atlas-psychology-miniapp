@@ -1,0 +1,39 @@
+{
+  "name": "atlas-psychology-miniapp",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Telegram Mini App для онлайн-школы психологии «Атлас»: лид-магнит, тапалка, лавка за внутреннюю валюту",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "server": "tsx server/index.ts",
+    "server:dev": "tsx watch server/index.ts",
+    "smoke": "tsx scripts/smoke-server.ts",
+    "guide:pdf": "tsx scripts/build-guide-pdf.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "lucide-react": "^1.52.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^4.1.11"
+  }
+}

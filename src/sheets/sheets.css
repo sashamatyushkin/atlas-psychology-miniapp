@@ -1,0 +1,481 @@
+.sheet-h {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 24px;
+  margin: 26px 0 12px;
+}
+
+.sheet-note {
+  font-size: 12.5px;
+  text-align: center;
+  margin-top: 18px;
+  line-height: 1.5;
+}
+
+.sheet-body > .eyebrow + .sheet-title {
+  margin-top: 6px;
+}
+
+/* ── Товар ───────────────────────────────────────────── */
+.ps-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.ps-sub {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.ps-price {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px;
+  margin-top: 18px;
+  border-radius: var(--radius-m);
+}
+
+.ps-price-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 4px;
+}
+
+.ps-price-value {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.ps-value b,
+.cs-price b {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.ps-balance {
+  text-align: right;
+}
+
+.ps-desc {
+  margin-top: 18px;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.ps-includes {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ps-includes li {
+  display: flex;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 550;
+}
+
+.ps-includes svg {
+  flex-shrink: 0;
+  color: var(--teal);
+  margin-top: 2px;
+}
+
+.delivered {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: var(--radius-l);
+  background: linear-gradient(140deg, #3b2c1c, #1b1612);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+.delivered.fresh {
+  animation: pop 0.5s var(--ease-spring) both;
+}
+
+.delivered-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #f0d3a8;
+}
+
+.code-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 56px;
+  padding: 0 18px;
+  border-radius: 16px;
+  border: 1.5px dashed rgba(240, 211, 168, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fff;
+}
+
+.delivered-hint {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* ── Программа ──────────────────────────────────────── */
+.course-cover-word {
+  position: absolute;
+  left: 50%;
+  bottom: 40px;
+  transform: translateX(-50%);
+  font-size: clamp(70px, 22vw, 104px);
+  z-index: 1;
+}
+
+.cs-title {
+  margin-top: 12px;
+}
+
+.cs-tagline {
+  margin-top: 8px;
+}
+
+.cs-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cs-meta div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cs-meta svg {
+  color: var(--accent);
+}
+
+.cs-price {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px 18px;
+  margin-top: 18px;
+  border-radius: var(--radius-m);
+}
+
+.cs-price > div:last-child {
+  text-align: right;
+}
+
+.cs-promo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-m);
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13.5px;
+  text-align: left;
+}
+
+.cs-promo svg {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.cs-h {
+  font-size: 26px;
+  margin: 28px 0 12px;
+}
+
+.cs-modules {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--line);
+}
+
+.cs-modules li {
+  display: flex;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 550;
+}
+
+.cs-modules span {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 13px;
+  padding-top: 2px;
+}
+
+/* ── Бусты ───────────────────────────────────────────── */
+.row-icon.teal {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.boost-free {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin-top: 18px;
+  border-radius: var(--radius-m);
+}
+
+.upgrades {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.upgrade {
+  padding: 14px;
+  border-radius: var(--radius-m);
+}
+
+.upgrade-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.upgrade-effect {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.upgrade-effect b {
+  color: var(--accent);
+}
+
+.levels {
+  padding: 6px 16px;
+  border-radius: var(--radius-m);
+}
+
+.level-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  font-size: 14px;
+}
+
+.level-line + .level-line {
+  border-top: 1px solid var(--line);
+}
+
+.level-dot {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-3);
+}
+
+.level-line.passed .level-dot {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.level-line.current .level-dot {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.level-name {
+  flex: 1;
+  font-weight: 650;
+}
+
+.level-line.current .level-name {
+  color: var(--accent);
+}
+
+/* ── Задания ─────────────────────────────────────────── */
+.tasks {
+  margin-top: 18px;
+  border-radius: var(--radius-m);
+  padding: 4px 0;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.task + .task {
+  border-top: 1px solid var(--line);
+}
+
+.task-reward {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.task-reward .subtle {
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+.task.done {
+  opacity: 0.55;
+}
+
+.task-check {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  color: var(--teal);
+  flex-shrink: 0;
+}
+
+.task-btn {
+  flex-shrink: 0;
+  min-width: 100px;
+}
+
+/* ── Ежедневная награда ─────────────────────────────── */
+.daily-text {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 6px;
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.day.wide {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(140deg, var(--accent-soft), var(--surface));
+}
+
+.day-n {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.day.claimed {
+  opacity: 0.5;
+}
+
+.day.current {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.day-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--teal);
+}
+
+.daily-next {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-top: 14px;
+  border-radius: var(--radius-m);
+  font-size: 14px;
+}
+
+.daily-next svg {
+  color: var(--accent);
+}
+
+/* ── Настройки и политика ───────────────────────────── */
+.settings-list {
+  margin-top: 18px;
+}
+
+.policy h3 {
+  font-size: 15px;
+  font-weight: 800;
+  margin: 20px 0 6px;
+}
+
+.policy p {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.policy > .muted {
+  margin-top: 8px;
+}
+
+.policy-note {
+  margin-top: 20px;
+  font-size: 12.5px !important;
+}

@@ -1,0 +1,283 @@
+.read-progress {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 3px;
+  margin-bottom: -3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform-origin: 0 0;
+}
+
+.guide-cover {
+  position: relative;
+  height: 64vh;
+  min-height: 420px;
+  max-height: 600px;
+  color: #fff;
+}
+
+.guide-cover > .img {
+  position: absolute;
+  inset: 0;
+}
+
+.guide-cover-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.05) 40%, var(--bg) 94%);
+  bottom: -1px;
+}
+
+.guide-cover .screen-header {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.guide-cover-text {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 10px;
+}
+
+.guide-cover-text .eyebrow {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+:root[data-theme='light'] .guide-cover-text {
+  color: var(--text);
+}
+
+:root[data-theme='light'] .guide-cover-text .eyebrow {
+  color: var(--text-3);
+}
+
+.guide-cover-text h1 {
+  font-size: clamp(42px, 12vw, 56px);
+  margin-top: 10px;
+}
+
+.guide-meta {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.guide-body {
+  padding: 18px var(--gutter) 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.guide-body > p + p {
+  margin-top: 14px;
+}
+
+.guide-body .lead {
+  font-family: var(--font-display);
+  font-size: 23px;
+  line-height: 1.3;
+}
+
+.guide-body p {
+  color: var(--text-2);
+}
+
+.guide-body .lead {
+  color: var(--text);
+}
+
+.toc {
+  margin: 28px 0 8px;
+  border-top: 1px solid var(--line);
+}
+
+.toc-item {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 2px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+}
+
+.toc-n {
+  font-size: 22px;
+  color: var(--accent);
+  width: 28px;
+}
+
+.toc-title {
+  flex: 1;
+  font-weight: 650;
+  font-size: 15px;
+}
+
+.toc-min {
+  font-size: 12px;
+}
+
+.tech {
+  margin-top: 48px;
+  scroll-margin-top: calc(var(--top) + 20px);
+}
+
+.tech-media {
+  position: relative;
+  height: 180px;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+}
+
+.tech-media > .img {
+  position: absolute;
+  inset: 0;
+}
+
+.tech-num {
+  position: absolute;
+  right: 14px;
+  bottom: -0.08em;
+  font-size: 120px;
+}
+
+.tech-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 18px;
+}
+
+.tech-title {
+  font-size: 36px;
+  margin-top: 12px;
+}
+
+.tech-block {
+  margin-top: 16px;
+}
+
+.tech-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.tech-steps {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tech-steps li {
+  display: flex;
+  gap: 14px;
+}
+
+.tech-steps li > span {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 1px;
+}
+
+.tech-steps li p {
+  color: var(--text);
+}
+
+.tech-tip {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 14px 16px;
+  border-radius: var(--radius-m);
+  background: var(--accent-soft);
+}
+
+.tech-tip svg {
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 3px;
+}
+
+.tech-tip p {
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.tech > .btn {
+  margin-top: 18px;
+}
+
+.help-box {
+  margin-top: 48px;
+  padding: 20px;
+  border-radius: var(--radius-l);
+  border: 1px solid var(--line-strong);
+}
+
+.help-box-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.help-box-head svg {
+  flex-shrink: 0;
+  color: var(--danger);
+  margin-top: 4px;
+}
+
+.help-box h3 {
+  font-size: 24px;
+}
+
+.help-box ul {
+  margin: 14px 0 0;
+  padding-left: 20px;
+  color: var(--text-2);
+  font-size: 15px;
+}
+
+.crisis {
+  margin-top: 14px;
+  font-size: 13.5px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.guide-outro {
+  margin-top: 32px;
+  font-family: var(--font-display);
+  font-size: 22px !important;
+  line-height: 1.3 !important;
+  color: var(--text) !important;
+}
+
+.guide-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.guide-sign {
+  text-align: center;
+  font-size: 12px !important;
+  margin-top: 22px;
+}

@@ -1,0 +1,163 @@
+.player {
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background: #0b0c10;
+  overflow: hidden;
+}
+
+.player-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.player-bg .img {
+  position: absolute;
+  inset: -30px;
+}
+
+.player-bg img {
+  filter: blur(18px) brightness(0.5) saturate(120%);
+}
+
+.player > *:not(.player-bg) {
+  position: relative;
+  z-index: 1;
+}
+
+.player-title {
+  color: #fff;
+}
+
+.player-stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 0 28px;
+  min-height: 0;
+}
+
+.player-intro {
+  text-align: center;
+}
+
+.player-intro .eyebrow {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.player-intro p {
+  margin-top: 14px;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.breath {
+  position: relative;
+  width: min(78vw, 320px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+
+.breath-orb {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.55), rgba(240, 211, 168, 0.25) 45%, rgba(108, 188, 179, 0.15) 70%);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3), 0 0 80px rgba(240, 211, 168, 0.35), inset 0 0 60px rgba(255, 255, 255, 0.15);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition-property: transform;
+  transition-timing-function: ease-in-out;
+}
+
+.breath-text {
+  position: relative;
+  text-align: center;
+}
+
+.breath-phase {
+  font-size: 40px;
+  font-style: italic;
+  animation: fade 0.6s var(--ease) both;
+}
+
+.breath-count {
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.steps-view {
+  text-align: center;
+}
+
+.steps-n {
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0.6;
+  letter-spacing: 0.1em;
+}
+
+.steps-text {
+  margin-top: 18px;
+  font-size: 32px;
+  line-height: 1.2;
+  animation: rise 0.8s var(--ease) both;
+}
+
+.player-finish {
+  text-align: center;
+}
+
+.player-finish .display {
+  font-size: 40px;
+}
+
+.player-finish p {
+  margin-top: 12px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.player-controls {
+  padding: 0 var(--gutter) calc(var(--bottom) + 20px);
+}
+
+.player-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.player-bar {
+  margin-top: 10px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.player-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  margin-top: 22px;
+}
+
+.player-main {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  color: #14110d;
+  box-shadow: 0 12px 40px -10px rgba(255, 255, 255, 0.5);
+  transition: transform 0.2s var(--ease);
+}
+
+.player-main:active {
+  transform: scale(0.93);
+}

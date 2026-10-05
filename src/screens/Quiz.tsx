@@ -5,7 +5,8 @@ import { Img } from '../components/Img';
 import { useMainButton } from '../components/MainButton';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Amount } from '../components/Spark';
-import { config, publicUrl } from '../config';
+import { botStartLink, config, publicUrl } from '../config';
+import { encodeBotEvent } from '../domain/botLinks';
 import { findCourse } from '../domain/catalog';
 import { TASK_REWARDS } from '../domain/economy';
 import { GUIDE } from '../domain/guide';
@@ -325,8 +326,8 @@ function LeadFormStep({ onDone }: { onDone: (d: { reward: number; sentToChat: bo
         <div className="eyebrow">Последний шаг</div>
         <h1 className="display">Куда отправить гайд?</h1>
         <p className="muted">
-          {backend
-            ? 'Бот пришлёт PDF прямо в этот чат, а куратор поможет подобрать программу, если захотите.'
+          {backend || config.botUsername
+            ? 'Бот пришлёт PDF прямо в чат, а куратор поможет подобрать программу, если захотите.'
             : 'Гайд откроется в приложении и будет доступен для скачивания.'}
         </p>
 
@@ -424,6 +425,12 @@ function suggestGoal(profile?: ProfileId): GoalId | null {
 
 function Done({ delivery }: { delivery: { reward: number; sentToChat: boolean } }) {
   const replace = useNav((s) => s.replace);
+  const state = useApp((s) => s.state)!;
+  // без публичного сервера гайд в чат доставляет бот по диплинку
+  const chatLink =
+    !delivery.sentToChat && state.quiz && state.lead
+      ? botStartLink(encodeBotEvent({ type: 'guide', profile: state.quiz.profile, goal: state.lead.goal, name: state.lead.name }))
+      : null;
   useMainButton({ text: 'Читать гайд', onClick: () => replace({ name: 'guide' }) });
 
   return (
@@ -437,7 +444,9 @@ function Done({ delivery }: { delivery: { reward: number; sentToChat: boolean } 
         <p className="muted">
           {delivery.sentToChat
             ? 'Мы отправили PDF в чат с ботом — он всегда будет под рукой.'
-            : 'Читайте прямо в приложении или сохраните PDF на устройство.'}
+            : chatLink
+              ? 'Читайте прямо в приложении или получите PDF в чат с ботом — он всегда будет под рукой.'
+              : 'Читайте прямо в приложении или сохраните PDF на устройство.'}
         </p>
         {delivery.reward > 0 && (
           <div className="done-reward rise">
@@ -448,6 +457,11 @@ function Done({ delivery }: { delivery: { reward: number; sentToChat: boolean } 
           </div>
         )}
         <div className="done-actions">
+          {chatLink && (
+            <button className="btn btn-ghost" onClick={() => openTelegramLink(chatLink)}>
+              <Send size={18} /> Получить PDF в чат
+            </button>
+          )}
           <button
             className="btn btn-ghost"
             onClick={() => downloadFile(publicUrl(GUIDE.pdfPath), 'Атлас — 7 техник самопомощи при тревоге.pdf')}

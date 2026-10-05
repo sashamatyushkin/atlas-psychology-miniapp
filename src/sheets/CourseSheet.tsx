@@ -10,7 +10,9 @@ import { PROFILES } from '../domain/quiz';
 import { useApp } from '../store/app';
 import { useNav } from '../store/nav';
 import { toast } from '../store/toast';
-import { haptic } from '../telegram/webapp';
+import { haptic, openTelegramLink } from '../telegram/webapp';
+import { botStartLink } from '../config';
+import { encodeBotEvent } from '../domain/botLinks';
 
 const rub = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 });
 
@@ -43,7 +45,9 @@ export function CourseSheetContent({ id }: { id: string }) {
     try {
       await apply(id);
       haptic.success();
-      toast(backend ? 'Заявка отправлена — куратор напишет вам в Telegram' : 'Заявка сохранена', 'success');
+      const link = backend ? null : botStartLink(encodeBotEvent({ type: 'apply', courseId: id }));
+      if (link) openTelegramLink(link);
+      else toast(backend ? 'Заявка отправлена — куратор напишет вам в Telegram' : 'Заявка сохранена', 'success');
     } catch (e) {
       toast(errorMessage(e), 'error');
     } finally {

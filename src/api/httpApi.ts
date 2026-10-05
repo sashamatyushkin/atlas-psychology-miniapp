@@ -8,7 +8,7 @@ import type { Api, LeadResult, Session, StateResult, StateWithReward } from './t
 import type { Purchase, TaskId, UpgradeKind } from '../domain/types';
 import type { LeadForm } from '../domain/validation';
 
-const TIMEOUT_MS = 12_000;
+const TIMEOUT_MS = 8_000;
 
 export class HttpApi implements Api {
   readonly kind = 'http' as const;
@@ -40,6 +40,8 @@ export class HttpApi implements Api {
     }
     const data = (await res.json().catch(() => ({}))) as { error?: { code: ApiErrorCode; message: string } } & T;
     if (!res.ok) {
+      // 502/503/504/530 — прокси/туннель жив, а сервер за ним недоступен
+      if (!data.error && res.status >= 502) throw new ApiError('NETWORK', 'Сервер недоступен');
       const code: ApiErrorCode = data.error?.code ?? (res.status === 401 ? 'UNAUTHORIZED' : res.status === 429 ? 'RATE_LIMIT' : 'SERVER');
       throw new ApiError(code, data.error?.message ?? 'Ошибка сервера');
     }

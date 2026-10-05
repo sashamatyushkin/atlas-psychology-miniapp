@@ -221,7 +221,7 @@ export function Profile() {
             </div>
             <ChevronRight size={18} className="subtle" />
           </button>
-          {api.resetDemo && (
+          {api.canResetDemo && (
             <button className="row" onClick={onReset}>
               <div className="row-icon danger">
                 <RotateCcw size={18} />
@@ -234,7 +234,7 @@ export function Profile() {
           )}
         </div>
         <p className="version subtle">
-          Атлас {config.version} · {backend ? 'сервер подключён' : 'автономный режим'}
+          Атлас {config.version} · {backend ? 'сервер подключён' : api.offline ? 'сервер недоступен, автономный режим' : 'автономный режим'}
           {!isTelegram && ' · браузер'}
         </p>
       </section>

@@ -2,8 +2,11 @@
  * Минимальный клиент Telegram Bot API на fetch, без зависимостей.
  * Long polling: команды /start, /guide, /help, /stop, /delete.
  */
-import { env } from './config';
+import { env, saveRuntime } from './config';
+import { decodeBotEvent } from '../src/domain/botLinks';
+import { findCourse, findProduct } from '../src/domain/catalog';
 import { GUIDE } from '../src/domain/guide';
+import { GOALS, PROFILES } from '../src/domain/quiz';
 import { newRecord, type Store } from './store';
 
 const API = 'https://api.telegram.org';
@@ -85,7 +88,25 @@ export { esc };
 
 interface Update {
   update_id: number;
-  message?: { chat: { id: number; type: string }; from?: { id: number; first_name: string }; text?: string };
+  message?: { chat: { id: number; type: string }; from?: { id: number; first_name: string; username?: string }; text?: string };
+  channel_post?: { chat: { id: number; type: string; title?: string } };
+  my_chat_member?: { chat: { id: number; type: string; title?: string }; new_chat_member: { status: string } };
+}
+
+/**
+ * Канал по приватной ссылке нельзя адресовать в getChatMember — нужен числовой id.
+ * Бот узнаёт его сам: когда его делают админом канала или в канале выходит пост.
+ */
+function detectChannel(u: Update) {
+  const chat = u.channel_post?.chat ?? (u.my_chat_member?.new_chat_member.status === 'administrator' ? u.my_chat_member.chat : undefined);
+  if (!chat || chat.type !== 'channel' || env.channelId === String(chat.id)) return;
+  if (env.channelId) {
+    console.log(`[bot] вижу ещё один канал «${chat.title}» (${chat.id}); используется CHANNEL_ID=${env.channelId}`);
+    return;
+  }
+  env.channelId = String(chat.id);
+  saveRuntime({ channelId: env.channelId });
+  console.log(`[bot] канал «${chat.title}» определён: ${chat.id} — проверка подписки включена`);
 }
 
 /** Настраивает кнопку меню и команды бота при старте. */
@@ -123,6 +144,34 @@ async function handle(update: Update, store: Store) {
     return { rec: { ...base, botStarted: true, unsubscribed: cmd === '/stop' ? true : base.unsubscribed }, result: null };
   });
 
+  // события из приложения, пришедшие диплинком t.me/<bot>?start=<payload>
+  const event = cmd === '/start' && payload ? decodeBotEvent(payload) : null;
+  if (event) {
+    const who = userLink({ id: chatId, firstName: name, username: msg.from.username });
+    if (event.type === 'guide') {
+      const sent = await sendGuide(chatId, event.name);
+      await store.update(chatId, (rec) => ({ rec: { ...rec!, guideName: event.name }, result: null }));
+      await notifyAdmin(
+        [
+          '🧭 <b>Новый лид · гайд по тревоге</b>',
+          `Имя: ${esc(event.name)} (${who})`,
+          `Ландшафт: <b>${PROFILES[event.profile].word}</b>`,
+          `Цель: ${GOALS.find((g) => g.id === event.goal)?.title ?? event.goal}`,
+          `Гайд в чат: ${sent ? 'отправлен' : 'ошибка отправки'}`,
+        ].join('\n'),
+      );
+    } else if (event.type === 'apply') {
+      const course = findCourse(event.courseId)!;
+      await notifyUser(chatId, `Заявка на программу «${esc(course.title)}» принята ✦\nКуратор напишет вам в ближайшее время.`);
+      await notifyAdmin(`📝 <b>Заявка на программу</b>\n«${esc(course.title)}»\nКлиент: ${who}`);
+    } else {
+      const product = findProduct(event.productId)!;
+      await notifyUser(chatId, `Получили ваш запрос «${esc(product.title)}» (код <code>${event.code}</code>). Куратор свяжется с вами, чтобы договориться о деталях.`);
+      await notifyAdmin(`🛍 <b>Обмен в Лавке</b>\n${esc(product.title)}\nКлиент: ${who}\nКод: <code>${event.code}</code>\n⚠️ Нужно связаться с клиентом`);
+    }
+    return;
+  }
+
   switch (cmd) {
     case '/start':
       await callApi('sendMessage', {
@@ -139,7 +188,7 @@ async function handle(update: Update, store: Store) {
       break;
     case '/guide': {
       const rec = store.get(chatId);
-      if (rec?.state.tasks.quiz) await sendGuide(chatId, rec.state.lead?.name ?? name);
+      if (rec?.state.tasks.quiz || rec?.guideName) await sendGuide(chatId, rec.state.lead?.name ?? rec.guideName ?? name);
       else
         await callApi('sendMessage', {
           chat_id: chatId,
@@ -170,9 +219,10 @@ export async function startPolling(store: Store, signal: AbortSignal) {
   console.log('[bot] long polling запущен');
   while (!signal.aborted) {
     try {
-      const updates = await callApi<Update[]>('getUpdates', { offset, timeout: 25, allowed_updates: ['message'] }, 35_000);
+      const updates = await callApi<Update[]>('getUpdates', { offset, timeout: 25, allowed_updates: ['message', 'channel_post', 'my_chat_member'] }, 35_000);
       for (const u of updates) {
         offset = u.update_id + 1;
+        detectChannel(u);
         await handle(u, store).catch((e) => console.error('[bot] handler error:', e));
       }
     } catch (e) {

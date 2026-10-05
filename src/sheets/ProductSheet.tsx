@@ -1,4 +1,4 @@
-import { Check, Copy, Lock, Play, Sparkles } from 'lucide-react';
+import { Check, Copy, Lock, Play, Send, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { errorMessage } from '../api';
 import { Img } from '../components/Img';
@@ -13,7 +13,9 @@ import type { Product, Purchase } from '../domain/types';
 import { useApp, useDisplayBalance } from '../store/app';
 import { useNav } from '../store/nav';
 import { toast } from '../store/toast';
-import { confirmDialog, copyText, haptic } from '../telegram/webapp';
+import { confirmDialog, copyText, haptic, openTelegramLink } from '../telegram/webapp';
+import { botStartLink } from '../config';
+import { encodeBotEvent } from '../domain/botLinks';
 
 const KIND_LABEL: Record<Product['kind'], string> = {
   practice: 'Практика в приложении',
@@ -123,6 +125,9 @@ function ProductView({ product: p }: { product: Product }) {
 
 function Delivered({ product: p, purchase, fresh }: { product: Product; purchase: Purchase; fresh: boolean }) {
   const push = useNav((s) => s.push);
+  const backend = useApp((s) => s.backend);
+  const needsCurator = p.kind === 'booking' || p.kind === 'merch';
+  const curatorLink = needsCurator && !backend ? botStartLink(encodeBotEvent({ type: 'purchase', productId: p.id, code: purchase.code })) : null;
   const copy = async () => {
     if (await copyText(purchase.code)) {
       haptic.success();
@@ -146,6 +151,11 @@ function Delivered({ product: p, purchase, fresh }: { product: Product; purchase
         </button>
       )}
       <p className="delivered-hint">{fulfillmentHint(p.kind)}</p>
+      {curatorLink && (
+        <button className="btn btn-light btn-block delivered-cta" onClick={() => openTelegramLink(curatorLink)}>
+          <Send size={16} /> Передать заявку куратору
+        </button>
+      )}
     </div>
   );
 }

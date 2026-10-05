@@ -171,7 +171,7 @@ export const useApp = create<AppStore>((set, get) => {
       await mutate(() => api.completePractice(practiceId));
     },
     async resetDemo() {
-      if (!api.resetDemo) return;
+      if (!api.canResetDemo) return;
       set({ pendingTaps: 0, inflightTaps: 0 });
       accept(await api.resetDemo());
     },

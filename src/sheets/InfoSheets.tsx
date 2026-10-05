@@ -54,7 +54,7 @@ export function SettingsSheet() {
             <div className="row-title">Политика конфиденциальности</div>
           </div>
         </button>
-        {api.resetDemo && (
+        {api.canResetDemo && (
           <button className="row" onClick={onReset}>
             <div className="row-icon danger">
               <RotateCcw size={18} />

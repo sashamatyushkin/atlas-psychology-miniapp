@@ -18,12 +18,17 @@ export function publicUrl(path: string): string {
 
 export const imageUrl = (name: string) => `${import.meta.env.BASE_URL}img/${name}.webp`;
 
+/** Диплинк в чат с ботом: бот получит /start <payload> */
+export function botStartLink(payload: string): string | null {
+  return config.botUsername ? `https://t.me/${config.botUsername}?start=${payload}` : null;
+}
+
 /** Ссылка на Mini App для приглашений: t.me/<bot>/<app>?startapp=ref_<id> */
 export function appLink(startParam?: string): string | null {
   if (!config.botUsername) return null;
+  // без short name используем ссылку на Main Mini App бота: t.me/<bot>?startapp=…
   const base = config.appShortName
     ? `https://t.me/${config.botUsername}/${config.appShortName}`
     : `https://t.me/${config.botUsername}`;
-  if (!startParam) return base;
-  return config.appShortName ? `${base}?startapp=${startParam}` : `${base}?start=${startParam}`;
+  return startParam ? `${base}?startapp=${startParam}` : base;
 }

@@ -1,4 +1,6 @@
 /** Конфигурация сервера из переменных окружения (.env подхватывается автоматически). */
+import { readFileSync, writeFileSync } from 'node:fs';
+
 try {
   process.loadEnvFile?.();
 } catch {
@@ -23,6 +25,28 @@ export const env = {
   /** срок жизни initData; Telegram рекомендует проверять auth_date */
   initDataMaxAgeSec: Number(process.env.INIT_DATA_MAX_AGE ?? 86_400),
 };
+
+const runtimeFile = new URL('./data/runtime.json', import.meta.url).pathname;
+
+/** Настройки, которые сервер узнаёт сам (например, id канала) и сохраняет между запусками. */
+export function loadRuntime() {
+  try {
+    const r = JSON.parse(readFileSync(runtimeFile, 'utf8')) as { channelId?: string };
+    if (!env.channelId && r.channelId) env.channelId = r.channelId;
+  } catch {
+    /* нет файла */
+  }
+}
+
+export function saveRuntime(patch: { channelId?: string }) {
+  let cur = {};
+  try {
+    cur = JSON.parse(readFileSync(runtimeFile, 'utf8'));
+  } catch {
+    /* нет файла */
+  }
+  writeFileSync(runtimeFile, JSON.stringify({ ...cur, ...patch }, null, 2));
+}
 
 export function assertEnv() {
   if (!env.botToken) throw new Error('BOT_TOKEN не задан. Скопируйте .env.example в .env и заполните.');

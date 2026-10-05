@@ -14,6 +14,8 @@ export interface UserRecord {
   referredBy?: number;
   /** пользователь написал боту /start — бот может ему писать */
   botStarted?: boolean;
+  /** гайд уже выдавался через бота (имя для повторной отправки) */
+  guideName?: string;
   /** отписался от рассылок (/stop) */
   unsubscribed?: boolean;
   createdAt: number;

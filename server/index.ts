@@ -1,10 +1,11 @@
 /** Точка входа: API + бот (long polling). Запуск: npm run server */
 import { createApp } from './app';
 import { setupBot, startPolling } from './bot';
-import { assertEnv, env } from './config';
+import { assertEnv, env, loadRuntime } from './config';
 import { JsonStore } from './store';
 
 assertEnv();
+loadRuntime();
 
 const store = new JsonStore(env.dataFile);
 const server = createApp(store);

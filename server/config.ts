@@ -1,5 +1,7 @@
 /** Конфигурация сервера из переменных окружения (.env подхватывается автоматически). */
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 try {
   process.loadEnvFile?.();
@@ -21,12 +23,13 @@ export const env = {
   port: Number(process.env.PORT ?? 8080),
   corsOrigins: list(process.env.CORS_ORIGINS),
   polling: (process.env.BOT_POLLING ?? 'true') !== 'false',
-  dataFile: process.env.DATA_FILE ?? new URL('./data/db.json', import.meta.url).pathname,
+  // fileURLToPath, а не .pathname: путь может содержать кириллицу и пробелы
+  dataFile: process.env.DATA_FILE ?? fileURLToPath(new URL('./data/db.json', import.meta.url)),
   /** срок жизни initData; Telegram рекомендует проверять auth_date */
   initDataMaxAgeSec: Number(process.env.INIT_DATA_MAX_AGE ?? 86_400),
 };
 
-const runtimeFile = new URL('./data/runtime.json', import.meta.url).pathname;
+const runtimeFile = fileURLToPath(new URL('./data/runtime.json', import.meta.url));
 
 /** Настройки, которые сервер узнаёт сам (например, id канала) и сохраняет между запусками. */
 export function loadRuntime() {
@@ -45,6 +48,7 @@ export function saveRuntime(patch: { channelId?: string }) {
   } catch {
     /* нет файла */
   }
+  mkdirSync(dirname(runtimeFile), { recursive: true });
   writeFileSync(runtimeFile, JSON.stringify({ ...cur, ...patch }, null, 2));
 }
 

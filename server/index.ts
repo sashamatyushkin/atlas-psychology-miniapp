@@ -11,14 +11,23 @@ const store = new JsonStore(env.dataFile);
 const server = createApp(store);
 const abort = new AbortController();
 
-server.listen(env.port, () => {
-  console.log(`[api] слушаю :${env.port} · пользователей: ${store.count()}`);
+server.on('error', (e: NodeJS.ErrnoException) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`\n✖ Порт ${env.port} занят — сервер Атласа уже запущен в другом окне терминала.`);
+    console.error('  Используйте его или остановите (Ctrl+C) и запустите заново.\n');
+    process.exit(1);
+  }
+  throw e;
 });
 
-if (env.polling) {
-  setupBot().catch((e) => console.warn('[bot] setup:', (e as Error).message));
-  void startPolling(store, abort.signal);
-}
+server.listen(env.port, () => {
+  console.log(`[api] слушаю :${env.port} · пользователей: ${store.count()}`);
+  // бот стартует только после успешного запуска: две копии конфликтовали бы за обновления
+  if (env.polling) {
+    setupBot().catch((e) => console.warn('[bot] setup:', (e as Error).message));
+    void startPolling(store, abort.signal);
+  }
+});
 
 function shutdown() {
   console.log('\n[api] остановка…');
